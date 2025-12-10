@@ -1,4 +1,4 @@
-package com.example.to_dolist
+package com.example.to_dolist;
 
 import android.app.Activity
 import android.content.DialogInterface

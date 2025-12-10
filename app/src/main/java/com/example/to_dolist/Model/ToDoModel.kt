@@ -1,4 +1,4 @@
-package com.example.to_dolist.Model
+package com.example.to_dolist.Model;
 
 class ToDoModel (
     var id: Int =  0,

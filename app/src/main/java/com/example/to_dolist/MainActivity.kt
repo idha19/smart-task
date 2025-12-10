@@ -1,4 +1,4 @@
-package com.example.to_dolist
+package com.example.to_dolist;
 
 import android.content.DialogInterface
 import android.os.Bundle
