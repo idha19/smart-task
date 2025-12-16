@@ -19,6 +19,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class AddNewTask : BottomSheetDialogFragment() {
 
+
     private lateinit var newTaskText: EditText
     private lateinit var newTaskSaveButton: Button
     private lateinit var db: DatabaseHandler

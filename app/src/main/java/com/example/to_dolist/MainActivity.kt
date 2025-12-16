@@ -22,7 +22,6 @@ class MainActivity : AppCompatActivity(), DialogCloseListener {
     private lateinit var fab: FloatingActionButton
     private var taskList = mutableListOf<ToDoModel>()
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

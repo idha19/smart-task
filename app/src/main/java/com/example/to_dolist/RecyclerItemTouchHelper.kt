@@ -25,6 +25,7 @@ class RecyclerItemTouchHelper(private val adapter: ToDoAdapter) :
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
         val position = viewHolder.adapterPosition
 
+
         if (direction == ItemTouchHelper.LEFT) {
             val builder = AlertDialog.Builder(adapter.getContext())
             builder.setTitle("Delete Task")
