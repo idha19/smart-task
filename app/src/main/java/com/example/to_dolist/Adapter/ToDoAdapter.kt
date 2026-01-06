@@ -1,64 +1,91 @@
-package com.example.to_dolist;
+package com.example.to_dolist
 
-import android.content.Context
+import android.graphics.Paint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
-import com.example.to_dolist.R
 import android.widget.CheckBox
-import android.widget.CompoundButton
+import android.widget.ImageView
+import androidx.recyclerview.widget.RecyclerView
 import com.example.to_dolist.Model.ToDoModel
-import com.example.to_dolist.MainActivity
 import com.example.to_dolist.Utils.DatabaseHandler
 
-class ToDoAdapter(private val db: DatabaseHandler, private val activity: MainActivity) :
-    RecyclerView.Adapter<ToDoAdapter.ViewHolder>() {
+class ToDoAdapter(
+    private val db: DatabaseHandler,
+    private val activity: MainActivity
+) : RecyclerView.Adapter<ToDoAdapter.ViewHolder>() {
 
     private var todoList: MutableList<ToDoModel> = mutableListOf()
+    private var todoListFull: MutableList<ToDoModel> = mutableListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val itemView = LayoutInflater.from(parent.context)
+        val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.task_layout, parent, false)
-        return ViewHolder(itemView)
+        return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        db.openDatabase()
+        val item = todoList[holder.position]
 
-        val item = todoList[position]
+        // set text
         holder.task.text = item.task
-        holder.task.isChecked = toBoolean(item.status)
 
-        holder.task.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
-            if (isChecked) {
-                db.updateStatus(item.id, 1)
-            } else {
-                db.updateStatus(item.id, 0)
-            }
+        // reset listener (WAJIB biar ga bug)
+        holder.task.setOnCheckedChangeListener(null)
+
+        // status -> checkbox
+        holder.task.isChecked = item.status == 1
+        setStrikeThrough(holder.task, item.status == 1)
+
+        // checkbox click
+        holder.task.setOnCheckedChangeListener { _, isChecked ->
+            item.status = if (isChecked) 1 else 0
+            db.updateStatus(item.id, item.status)
+            setStrikeThrough(holder.task, isChecked)
+        }
+
+        // EDIT
+        holder.btnEdit.setOnClickListener {
+            editItem(holder.adapterPosition)
+        }
+
+        // HAPUS
+        holder.btnHapus.setOnClickListener {
+            deleteItem(holder.adapterPosition)
         }
     }
 
     override fun getItemCount(): Int = todoList.size
 
-    private fun toBoolean(n: Int): Boolean = n != 0
-
     fun setTasks(tasks: List<ToDoModel>) {
-        this.todoList = tasks.toMutableList()
+        todoList = tasks.toMutableList()
+        todoListFull = tasks.toMutableList()
+        notifyDataSetChanged()
+    }
+
+    fun filter(query: String) {
+        val lowerQuery = query.lowercase()
+
+        todoList = if (query.isEmpty()) {
+            todoListFull.toMutableList()
+        } else {
+            todoListFull.filter {
+                it.task.lowercase().contains(lowerQuery)
+            }.toMutableList()
+        }
         notifyDataSetChanged()
     }
 
 
-
-    fun deleteItem(position: Int) {
+    private fun deleteItem(position: Int) {
         val item = todoList[position]
         db.deleteTask(item.id)
         todoList.removeAt(position)
         notifyItemRemoved(position)
     }
 
-    fun editItem(position: Int) {
+    private fun editItem(position: Int) {
         val item = todoList[position]
         val bundle = Bundle().apply {
             putInt("id", item.id)
@@ -70,9 +97,17 @@ class ToDoAdapter(private val db: DatabaseHandler, private val activity: MainAct
         fragment.show(activity.supportFragmentManager, AddNewTask.TAG)
     }
 
-    fun getContext(): Context = activity
+    private fun setStrikeThrough(checkBox: CheckBox, isDone: Boolean) {
+        checkBox.paintFlags = if (isDone) {
+            checkBox.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+        } else {
+            checkBox.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+        }
+    }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val task: CheckBox = view.findViewById(R.id.todoCheckBox)
+        val btnEdit: ImageView = view.findViewById(R.id.btnEdit)
+        val btnHapus: ImageView = view.findViewById(R.id.btnHapus)
     }
 }

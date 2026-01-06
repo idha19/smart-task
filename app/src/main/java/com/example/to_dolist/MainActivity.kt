@@ -1,32 +1,30 @@
-package com.example.to_dolist;
+package com.example.to_dolist
 
 import android.content.DialogInterface
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.widget.EditText
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.to_dolist.Model.ToDoModel
 import com.example.to_dolist.Utils.DatabaseHandler
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.Collections
 
 class MainActivity : AppCompatActivity(), DialogCloseListener {
 
-    private lateinit var tasksRecyclerView: RecyclerView;
-    private lateinit var tasksAdapter: ToDoAdapter;
-    private lateinit var db:DatabaseHandler
+    private lateinit var tasksRecyclerView: RecyclerView
+    private lateinit var tasksAdapter: ToDoAdapter
+    private lateinit var inputSearch: EditText
+    private lateinit var db: DatabaseHandler
     private lateinit var fab: FloatingActionButton
-    private var taskList = mutableListOf<ToDoModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-
         supportActionBar?.hide()
 
         db = DatabaseHandler(this)
@@ -35,25 +33,38 @@ class MainActivity : AppCompatActivity(), DialogCloseListener {
         tasksRecyclerView = findViewById(R.id.tasksRecyclerView)
         tasksRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        tasksAdapter = ToDoAdapter(db,this)
+        tasksAdapter = ToDoAdapter(db, this)
         tasksRecyclerView.adapter = tasksAdapter
-
-        val itemTouchHelper = ItemTouchHelper(RecyclerItemTouchHelper(tasksAdapter))
-        itemTouchHelper.attachToRecyclerView(tasksRecyclerView)
 
         fab = findViewById(R.id.fab)
         fab.setOnClickListener {
-            AddNewTask.newInstance().show(supportFragmentManager, AddNewTask.TAG)
+            AddNewTask.newInstance()
+                .show(supportFragmentManager, AddNewTask.TAG)
         }
 
-        taskList = db.getAllTasks().toMutableList()
+        loadTasks()
+
+        inputSearch = findViewById(R.id.inputSearch)
+
+        inputSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                tasksAdapter.filter(s.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+    }
+
+    private fun loadTasks() {
+        val taskList = db.getAllTasks().toMutableList()
         Collections.reverse(taskList)
         tasksAdapter.setTasks(taskList)
     }
+
     override fun handleDialogClose(dialog: DialogInterface) {
-        taskList = db.getAllTasks().toMutableList()
-        Collections.reverse(taskList)
-        tasksAdapter.setTasks(taskList)
-        tasksAdapter.notifyDataSetChanged()
+        loadTasks()
     }
 }

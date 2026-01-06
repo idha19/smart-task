@@ -8,5 +8,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="pink">#FF67E5</color>
-    <color name="blue">#03C1F0</color>
+    <color name="blue">#0320FF</color>
+    <color name="red">#FF0000</color>
 </resources>
